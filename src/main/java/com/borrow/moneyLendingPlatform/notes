@@ -1,0 +1,31 @@
+Borrower -> Loan(Owning)    Borrower -->> List of Loan
+
+    @ManyToOne
+    @JoinColumn(name = "borrower_id", nullable = false)
+    private Borrower borrower;
+
+
+    @OneToMany(mappedBy = "borrower", cascade = CascadeType.ALL)
+    private List<Loan> loans;
+
+
+Lender -> Bid(Owning)       Lender -->> List of Bids
+
+    @ManyToOne
+    @JoinColumn(name = "lender_id", nullable = false)
+    private Lender lender;
+
+    @OneToMany(mappedBy = "lender")
+    private List<Bid> bids;
+
+
+Loan -> Bid(Owning side)         Loan -->> List of Bid
+
+    @ManyToOne
+    @JoinColumn(name = "loan_id")
+    private Loan loan;
+
+    @OneToMany(mappedBy = "loan")
+    private List<Bid> bids;
+
+
