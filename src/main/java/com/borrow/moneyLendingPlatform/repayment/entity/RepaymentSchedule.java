@@ -31,6 +31,7 @@ public class RepaymentSchedule {
 
     private Double emiAmount;
 
+    @Enumerated(EnumType.STRING)
     private RepaymentStatus repaymentStatus;
 
 }

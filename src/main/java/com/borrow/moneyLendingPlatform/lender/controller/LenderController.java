@@ -23,12 +23,12 @@ public class LenderController {
     }
 
     @PostMapping("/bid")
-    public ResponseEntity<BidResponseDTO> postBid(@PathVariable BidReqDTO bidReqDTO){
+    public ResponseEntity<BidResponseDTO> postBid(@RequestBody BidReqDTO bidReqDTO){
         return ResponseEntity.ok(lenderService.placeBidForLoanReq(bidReqDTO));
     }
 
     @GetMapping("bids")
-    public ResponseEntity<List<BidResponseDTO>> getMyBids(@PathVariable Long lenderId){
+    public ResponseEntity<List<BidResponseDTO>> getMyBids(@RequestBody Long lenderId){
         return ResponseEntity.ok(lenderService.getMyAllBids(lenderId));
     }
 }

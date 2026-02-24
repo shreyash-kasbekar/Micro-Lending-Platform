@@ -38,6 +38,7 @@ public class Bid {
 
     private String message;
 
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     @CreationTimestamp
