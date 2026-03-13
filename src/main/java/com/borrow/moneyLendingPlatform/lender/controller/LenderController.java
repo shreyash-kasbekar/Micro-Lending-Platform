@@ -6,6 +6,7 @@ import com.borrow.moneyLendingPlatform.lender.dto.BidResponseDTO;
 import com.borrow.moneyLendingPlatform.lender.service.LenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,12 +24,12 @@ public class LenderController {
     }
 
     @PostMapping("/bid")
-    public ResponseEntity<BidResponseDTO> postBid(@RequestBody BidReqDTO bidReqDTO){
-        return ResponseEntity.ok(lenderService.placeBidForLoanReq(bidReqDTO));
+    public ResponseEntity<BidResponseDTO> placeBid(@RequestBody BidReqDTO bidReqDTO, Authentication authentication){
+        return ResponseEntity.ok(lenderService.placeBidForLoanReq(bidReqDTO, authentication.getName()));
     }
 
     @GetMapping("bids")
-    public ResponseEntity<List<BidResponseDTO>> getMyBids(@RequestBody Long lenderId){
-        return ResponseEntity.ok(lenderService.getMyAllBids(lenderId));
+    public ResponseEntity<List<BidResponseDTO>> getMyBids(Authentication authentication){
+        return ResponseEntity.ok(lenderService.getMyAllBids(authentication.getName()));
     }
 }

@@ -14,6 +14,7 @@ import com.borrow.moneyLendingPlatform.user.repository.UserRepository;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,19 +32,21 @@ public class BorrowerService {
     private LoanService loanService;
 
 
-    public LoanResponseDTO requestLoanCreation(LoanReqDTO loanReqDTO) {
+    @Transactional
+    public LoanResponseDTO requestLoanCreation(String mail, LoanReqDTO loanReqDTO) {
 
-        LoanRequest newloanRequest = mapToEntity(loanReqDTO);
+        LoanRequest newloanRequest = mapToEntity(mail, loanReqDTO);
         LoanRequest saved = loanRequestRepository.save(newloanRequest);
         return mapToDTO(saved);
 
     }
 
 
-    private LoanRequest mapToEntity(LoanReqDTO loanReqDTO) {
+    private LoanRequest mapToEntity(String mail, LoanReqDTO loanReqDTO) {
 
         LoanRequest loanRequest = new LoanRequest();
-        loanRequest.setBorrower(userRepository.findById(loanReqDTO.getFromUserId()).orElseThrow(()->new RuntimeException("Invalid User/Borrower Id in mapToEntity")));
+        Users borrower  = userRepository.findUserByEmail(mail).orElseThrow(()->new RuntimeException("Invalid User/Borrower Id in mapToEntity"));
+        loanRequest.setBorrower(borrower);
         loanRequest.setAmount(loanReqDTO.getAmount());
         loanRequest.setTenureInMonths(loanReqDTO.getHoldingPeriodMonths());
         loanRequest.setPurpose(loanReqDTO.getPurpose());
@@ -64,13 +67,13 @@ public class BorrowerService {
         return loanResponseDTO;
     }
 
-    public LoanResponseDTO getLoanWithId(Long loanId) {
+    public LoanResponseDTO getLoanWithId(String mail, Long loanId) {
         return mapToDTO(loanRequestRepository.findById(loanId).orElseThrow(()->new RuntimeException("Incorrect Loan Id in getLoanWithId")));
     }
 
-    public List<LoanResponseDTO> getMyAllLoanReq(Long borrowerId) {
+    public List<LoanResponseDTO> getMyAllLoanReq(String email) {
 
-        List<LoanRequest> loanRequestList = loanRequestRepository.findByBorrower(userRepository.findById(borrowerId).orElseThrow(()->new RuntimeException("Invalid Borrower/User Id in getMyAllLoanReq")));
+        List<LoanRequest> loanRequestList = loanRequestRepository.findByBorrower(userRepository.findUserByEmail(email).orElseThrow(()->new RuntimeException("Invalid Borrower/User Id in getMyAllLoanReq")));
 
         List<LoanResponseDTO> loanResponseDTOS = new ArrayList<>();
 
@@ -87,15 +90,31 @@ public class BorrowerService {
     }
 
 
-    public Bid acceptBid(Long bidId) {
+    @Transactional
+    public Bid acceptBid(String mail, Long bidId) {
         Bid bid = bidRepository.findById(bidId).orElseThrow(()->new RuntimeException("bid Not found with this id in acceptBid"));
 
+        Users user = userRepository.findUserByEmail(mail).orElseThrow(() -> new RuntimeException("No user found in accept bid"));
 
         LoanRequest loanRequest = bid.getLoanRequest();
+
+        //Checking if bid is accepted by the same person
+        Long idFromLoanReq = loanRequest.getBorrower().getId();
+        System.out.println("================== owner of loan req "+ idFromLoanReq);
+        Long idFromUserWhoAcceptBid = user.getId();
+        System.out.println("================== bid is accepted by "+ idFromUserWhoAcceptBid);
+
+        if (!idFromLoanReq.equals(idFromUserWhoAcceptBid)){
+            throw new RuntimeException("you are not authorized to accept the bid");
+        }
+
+        //Rejecting all other bids
         List<Bid> bidList = bidRepository.findByLoanRequest(loanRequest);
         for (Bid bid1: bidList){
             bid1.setStatus(com.borrow.moneyLendingPlatform.lender.entity.Status.REJECTED);
         }
+
+        //accepting our bid
         bid.setStatus(com.borrow.moneyLendingPlatform.lender.entity.Status.ACCEPTED);
         loanService.bidAcceptedByBorrower(loanRequest, bid);
         return bid;

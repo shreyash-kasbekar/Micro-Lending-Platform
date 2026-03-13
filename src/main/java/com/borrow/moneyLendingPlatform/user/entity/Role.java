@@ -1,7 +1,7 @@
 package com.borrow.moneyLendingPlatform.user.entity;
 
 public enum Role {
-    ADMIN,
+//    ADMIN,
     BORROWER,
     LENDER
 }

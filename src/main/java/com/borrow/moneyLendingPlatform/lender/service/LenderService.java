@@ -9,8 +9,10 @@ import com.borrow.moneyLendingPlatform.lender.dto.BidResponseDTO;
 import com.borrow.moneyLendingPlatform.lender.entity.Bid;
 import com.borrow.moneyLendingPlatform.lender.entity.Status;
 import com.borrow.moneyLendingPlatform.lender.repository.BidRepository;
+import com.borrow.moneyLendingPlatform.user.entity.Role;
 import com.borrow.moneyLendingPlatform.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,21 +34,25 @@ public class LenderService {
     private BidRepository bidRepository;
 
     public List<LoanResponseDTO> getAllOpenLoanReq() {
+
         List<LoanRequest> loanRequestList = loanRequestRepository.findAll();
 
         List<LoanResponseDTO> loanResponseDTOS = new ArrayList<>();
 
         for (LoanRequest loanRequest: loanRequestList){
-            loanResponseDTOS.add(borrowerService.mapToDTO(loanRequest));
+            if (loanRequest.getStatusOfLoanReq() == com.borrow.moneyLendingPlatform.borrower.entity.Status.OPEN){
+                loanResponseDTOS.add(borrowerService.mapToDTO(loanRequest));
+            }
         }
         return loanResponseDTOS;
     }
 
 
-    public BidResponseDTO placeBidForLoanReq(BidReqDTO bidReqDTO) {
-        Bid newBid = mapToEntity(bidReqDTO);
-        Bid savedBid= bidRepository.save(newBid);
-        return mapToDTO(savedBid);
+    public BidResponseDTO placeBidForLoanReq(BidReqDTO bidReqDTO, String mail) {
+
+            Bid newBid = mapToEntity(bidReqDTO, mail);
+            Bid savedBid = bidRepository.save(newBid);
+            return mapToDTO(savedBid);
 
     }
 
@@ -62,10 +68,10 @@ public class LenderService {
         return bidResponseDTO;
     }
 
-    private Bid mapToEntity(BidReqDTO bidReqDTO) {
+    private Bid mapToEntity(BidReqDTO bidReqDTO, String mail) {
         Bid bid = new Bid();
         bid.setLoanRequest(loanRequestRepository.findById(bidReqDTO.getLoanId()).orElseThrow(() -> new RuntimeException("Incorrect Loan Request ID in mapToEntity(Lender Module)")));
-        bid.setLender(userRepository.findById(bidReqDTO.getFromUserId()).orElseThrow(()-> new RuntimeException("No User Found for this id to set lender")));
+        bid.setLender(userRepository.findUserByEmail(mail).orElseThrow(()-> new RuntimeException("No User Found for this id to set lender")));
         bid.setOfferedAmount(bidReqDTO.getOfferedAmount());
         bid.setInterestRate(bidReqDTO.getInterestRate());
         bid.setMessage(bidReqDTO.getMessage());
@@ -73,8 +79,8 @@ public class LenderService {
         return bid;
     }
 
-    public List<BidResponseDTO> getMyAllBids(Long lenderId) {
-        List<Bid> bidList = bidRepository.findByLender(userRepository.findById(lenderId).orElseThrow(()->new RuntimeException("No Lender found for this id in getMyAllBids")));
+    public List<BidResponseDTO> getMyAllBids(String mail) {
+        List<Bid> bidList = bidRepository.findByLender(userRepository.findUserByEmail(mail).orElseThrow(()->new RuntimeException("No Lender found for this mail from authentication in getMyAllBids")));
         List<BidResponseDTO> bidResponseDTOS = new ArrayList<>();
         for (Bid bid: bidList){
             bidResponseDTOS.add(mapToDTO(bid));

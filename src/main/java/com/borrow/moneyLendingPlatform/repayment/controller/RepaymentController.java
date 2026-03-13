@@ -1,4 +1,4 @@
-package com.borrow.moneyLendingPlatform.repayment.collection;
+package com.borrow.moneyLendingPlatform.repayment.controller;
 
 import com.borrow.moneyLendingPlatform.repayment.dto.PaymentRequestDTO;
 import com.borrow.moneyLendingPlatform.repayment.dto.RepaymentScheduleDTO;
@@ -21,8 +21,8 @@ public class RepaymentController {
         return ResponseEntity.ok(repaymentService.getTheListOfRepaymentSchedule(loanId));
     }
 
-    @PostMapping("/repayment/pay/{repaymentScheduleId}")
-    public ResponseEntity<> payRepaymentSchedule(@PathVariable Long repaymentScheduleId, @RequestBody PaymentRequestDTO){
-        return ResponseEntity.ok(repaymentService.makingPayment())
-    }
+//    @PostMapping("/repayment/pay/{repaymentScheduleId}")
+//    public ResponseEntity<> payRepaymentSchedule(@PathVariable Long repaymentScheduleId, @RequestBody PaymentRequestDTO){
+//        return ResponseEntity.ok(repaymentService.makingPayment())
+//    }
 }

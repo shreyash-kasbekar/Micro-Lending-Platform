@@ -11,7 +11,6 @@ import lombok.Setter;
 @Setter
 public class BidReqDTO {
     private Long loanId;
-    private Long fromUserId;
     private Double offeredAmount;
     private Double interestRate;
     private String message;

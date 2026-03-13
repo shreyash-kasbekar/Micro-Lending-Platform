@@ -11,7 +11,6 @@ import lombok.Setter;
 @Setter
 public class LoanReqDTO {
 
-    private Long fromUserId;
     private Double amount;
     private Integer holdingPeriodMonths;
     private String purpose;
